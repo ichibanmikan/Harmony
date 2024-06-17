@@ -38,11 +38,11 @@ def parse_option():
                     help='dimension of encoders in multimodal model')
     parser.add_argument('--dim_enc_single', type=int, default=int(39456/2),
                     help='dimension of encoder in singlemodal model')
-    parser.add_argument('--dim_cls_multi', type=int, default=int(2829532*2),
+    parser.add_argument('--dim_cls_multi', type=int, default=int(2829532),
                     help='dimension of encoders in multimodal model')
     parser.add_argument('--dim_cls_single', type=int, default=2829532,
                     help='dimension of encoder in singlemodal model')
-    parser.add_argument('--dim_multi', type=int, default=int(39456 + 2829532*2),
+    parser.add_argument('--dim_multi', type=int, default=int(39456 + 2829532),
                     help='dimension of encoders in multimodal model')
     parser.add_argument('--dim_single', type=int, default=int(39456/2 + 2829532),
                     help='dimension of encoder in singlemodal model')
@@ -276,7 +276,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 				
 				while sys.getsizeof(recv_data)<size[0]:
 					recv_data += self.request.recv(size[0]-sys.getsizeof(recv_data))
-				
+				print(mess_type)
 				#if hello message, barrier until all clients arrive and send a message to start
 				if mess_type == -1:
 					try:
@@ -297,14 +297,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 						print("wait W timeout...")
 
 					temp_modality = pickle.loads(recv_data)
-
 					if temp_modality == 'both':
 						Local_Modality[user_id] = 2
 					elif temp_modality == 'acc':
 						Local_Modality[user_id] = 0
 					elif temp_modality == 'gyr':
 						Local_Modality[user_id] = 1
-					print("client {} has modality {}".format(user_id[0], Local_Modality[user_id]))
+					print("client {} has modality {}".format(user_id, Local_Modality[user_id]))
 
 
 				#if W message, server update for model aggregation
@@ -318,26 +317,30 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 						CLS[user_id] = weights[opt.dim_enc_multi:]
 					elif Local_Modality[user_id] == 0:
 						ENC[user_id][0:opt.dim_enc_single] = weights[0:opt.dim_enc_single]## the encoder weights are saved on the head for single modality nodes
-						CLS[user_id][0:opt.dim_cls_single] = weights[opt.dim_enc_single:]## the classifier weights are saved on the head for single modality nodes
+						CLS[user_id] = weights[opt.dim_enc_single:]## the classifier weights are saved on the head for single modality nodes
 					elif Local_Modality[user_id] == 1:
 						ENC[user_id][0:opt.dim_enc_single] = weights[0:opt.dim_enc_single]## the classifier weights are saved on the head for single modality nodes
-						CLS[user_id][0:opt.dim_cls_single] = weights[opt.dim_enc_single:]## the classifier weights are saved on the head for single modality nodes
-
+						CLS[user_id] = weights[opt.dim_enc_single:]## the classifier weights are saved on the head for single modality nodes
 					try:
 						barrier_W.wait(120)
 					except Exception as e:
 						print("wait W timeout...")
-
 					if Local_Modality[user_id] == 2:
-						model_1 = np.append(mean_encoder_0, mean_classifier_0)
-						model_2 = np.append(mean_encoder_1, mean_classifier_1)
+						try:
+							model_1 = np.append(mean_encoder_0, mean_classifier_0)
+						except Exception as e:
+							print("append model_1 error")
+						try:
+							model_2 = np.append(mean_encoder_1, mean_classifier_1)
+						except Exception as e:
+							print("append model_2 error")
 						mess_size = self.send2node(np.append(model_1, model_2))#self.send2node(New_ALL[user_id])
 					elif Local_Modality[user_id] == 0:
 						mess_size = self.send2node(np.append(mean_encoder_0, mean_classifier_0))#self.send2node(New_ALL[user_id][0:opt.dim_single])
 					elif Local_Modality[user_id] == 1:
 						mess_size = self.send2node(np.append(mean_encoder_1, mean_classifier_1))#self.send2node(New_ALL[user_id][0:opt.dim_single])
 
-					print("send New_W to client {} with the size of {}".format(user_id[0],mess_size))
+					print("send New_W to client {} with the size of {}".format(user_id,mess_size))
 
 
 					#if Update_Flag=0, stop the specific client
@@ -377,13 +380,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
 if __name__ == "__main__":
 	HOST = "0.0.0.0"
-
 	opt = parse_option()
 	if opt.modality_group == "acc":
 		PORT = 9998
 	elif opt.modality_group == "gyr":
 		PORT = 9997
-
 	server = socketserver.ThreadingTCPServer((HOST,PORT),MyTCPHandler)
 	# server.server_close()
 	server.serve_forever(poll_interval = 0.5)
+
