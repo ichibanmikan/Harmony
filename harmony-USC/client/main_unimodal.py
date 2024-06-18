@@ -28,13 +28,14 @@ except ImportError:
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
+
 def parse_option():
     parser = argparse.ArgumentParser('argument for training')
 
     # FL
     parser.add_argument('--usr_id', type=int, default=0,
                         help='user id')
-    parser.add_argument('--fl_epoch', type=int, default=10,
+    parser.add_argument('--fl_epoch', type=int, default=10, #每个客户端默认每10次传递一次参数到服务器
                     help='communication to server after the epoch of local training')
     parser.add_argument('--server_address', type=str, default="localhost",
                         help='server_address')
@@ -50,7 +51,7 @@ def parse_option():
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
     parser.add_argument('--epochs', type=int, default=199,
-                        help='number of training epochs')
+                        help='number of training epochs') #整个系统中每个客户端共训练默认200个epoch
 
     # optimization
     parser.add_argument('--learning_rate', type=float, default=1e-3,

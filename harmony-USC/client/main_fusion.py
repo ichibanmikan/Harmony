@@ -483,7 +483,7 @@ def main():
         print("Node {} distance:".format(opt.usr_id), encoder_1_dis, encoder_2_dis, classifier_dis)
 
         # # communication with the server every fl_epoch 
-        if (epoch % opt.fl_epoch) == 0 and (epoch / opt.fl_epoch) > 1:
+        if (epoch % opt.fl_epoch) == 0 and (epoch / opt.fl_epoch) >= 1:
 
 
             print("Node {} sends weight to the server:".format(opt.usr_id))

@@ -146,12 +146,12 @@ def mmFedavg_encoder(opt, encoder, local_modality):
 
 def mmFedavg_classifier(opt, classifier, local_modality):
 
-	count_modality = np.zeros( int(opt.num_of_modality + 1) )
+	count_modality = np.zeros( int(opt.num_of_modality + 1) ) #计数每个模态
 
 	classifier_0_record = np.zeros(opt.dim_cls_0)
 	classifier_1_record = np.zeros(opt.dim_cls_1)
 	classifier_2_record = np.zeros(opt.dim_cls_2)
-	classifier_multi_record = np.zeros(opt.dim_cls_multi)
+	classifier_multi_record = np.zeros(opt.dim_cls_multi) #分类器记录，如下的for循环：记录从客户端传递过来的分类器权重。
 
 	for user_id in range(opt.num_of_users):
 
