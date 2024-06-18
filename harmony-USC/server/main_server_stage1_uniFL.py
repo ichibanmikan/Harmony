@@ -62,7 +62,7 @@ NUM_OF_WAIT = opt.num_of_users
 
 ## recieved all model weights
 ENC = np.zeros((opt.num_of_users, opt.dim_enc_multi))
-CLS = np.zeros((opt.num_of_users, opt.dim_cls_multi))
+CLS = np.zeros((opt.num_of_users, opt.dim_cls_single))
 
 Update_Flag = np.ones(opt.num_of_users)
 Local_Modality = np.zeros(opt.num_of_users).astype(int)

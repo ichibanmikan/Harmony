@@ -116,7 +116,8 @@ def mmFedavg_encoder(opt, encoder):
 		count_user[group_id] += 1
 
 	for index_group in range(num_of_group):
-		mean_enc_all[index_group] = mean_enc_all[index_group] / count_user[index_group]
+		if count_user[index_group] != 0:
+			mean_enc_all[index_group] = mean_enc_all[index_group] / count_user[index_group]
 
 
 	return mean_enc_all
@@ -136,7 +137,8 @@ def mmFedavg_classifier(opt, classifier):
 		count_user[group_id] += 1
 
 	for index_group in range(num_of_group):
-		mean_classifier_all[index_group] = mean_classifier_all[index_group] / count_user[index_group]
+		if count_user[index_group] != 0:
+			mean_classifier_all[index_group] = mean_classifier_all[index_group] / count_user[index_group]
 
 
 	return mean_classifier_all
@@ -266,20 +268,18 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 				#receive the size of content
 				header = self.request.recv(4)
 				size = struct.unpack('i', header)
-
-				#receive the id of client
-				u_id = self.request.recv(4)
-				user_id = struct.unpack('i',u_id)
-
-				# receive the type of message, defination in communication.py
-				# mess_type = self.request.recv(4)
-				# mess_type = struct.unpack('i',mess_type)[0]
-
+				print(size)
+    
 				#receive the id of client
 				u_id = self.request.recv(4)
 				temp_id = struct.unpack('i',u_id)
 				user_id = temp_to_user(int(temp_id[0]), 3)
-				# print("user_id:", user_id)
+				print(user_id)
+    
+				# receive the type of message, defination in communication.py
+				mess_type = self.request.recv(4)
+				mess_type = struct.unpack('i',mess_type)[0]
+				print(mess_type)
 
 				#print("This is the {}th node with message type {}".format(user_id[0],mess_type))
 
@@ -308,14 +308,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 						print("wait W timeout...")
 
 					temp_modality = pickle.loads(recv_data)
-
+					print(user_id)
 					if temp_modality == 'both':
 						Local_Modality[user_id] = 2
 					elif temp_modality == 'acc':
 						Local_Modality[user_id] = 0
 					elif temp_modality == 'gyr':
 						Local_Modality[user_id] = 1
-					print("client {} has modality {}".format(user_id[0], Local_Modality[user_id]))
+					print("client {} has modality {}".format(user_id, Local_Modality[user_id]))
 
 
 				#if W message, server update for model aggregation
@@ -334,14 +334,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 						print("wait W timeout...")
 
 					if Local_Modality[user_id] == 2:
-						group_id = group_index(int(user_id[0]))
+						group_id = group_index(int(user_id))
 						print("group_id:", group_id)
 						send_model = np.append(mean_encoder_all[group_id], mean_classifier_multi[group_id])
 						print("send_model:", send_model.shape)
 						mess_size = self.send2node(send_model)#self.send2node(New_ALL[user_id])
 
 
-					print("send New_W to client {} with the size of {}".format(user_id[0],mess_size))
+					print("send New_W to client {} with the size of {}".format(user_id,mess_size))
 
 
 					#if Update_Flag=0, stop the specific client

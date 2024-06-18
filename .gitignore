@@ -24,3 +24,6 @@ USC-data/node_0/x_train_1.npy
 USC-data/node_0/x_train_2.npy
 USC-data/node_0/y_test.npy
 USC-data/node_0/y_train.npy
+harmony-USC/server/save_enc_cen_fusion_fl_all
+harmony-USC/server/__pycache__
+harmony-USC/server/save_enc_cen_fusion_fl_all
