@@ -38,11 +38,11 @@ def parse_option():
                     help='dimension of encoders in multimodal model')
     parser.add_argument('--dim_enc_single', type=int, default=int(39456/2),
                     help='dimension of encoder in singlemodal model')
-    parser.add_argument('--dim_cls_multi', type=int, default=int(2829532),
+    parser.add_argument('--dim_cls_multi', type=int, default=int(2829532*2),
                     help='dimension of encoders in multimodal model')
     parser.add_argument('--dim_cls_single', type=int, default=2829532,
                     help='dimension of encoder in singlemodal model')
-    parser.add_argument('--dim_multi', type=int, default=int(39456 + 2829532),
+    parser.add_argument('--dim_multi', type=int, default=int(39456 + 2829532*2),
                     help='dimension of encoders in multimodal model')
     parser.add_argument('--dim_single', type=int, default=int(39456/2 + 2829532),
                     help='dimension of encoder in singlemodal model')
@@ -62,7 +62,7 @@ NUM_OF_WAIT = opt.num_of_users
 
 ## recieved all model weights
 ENC = np.zeros((opt.num_of_users, opt.dim_enc_multi))
-CLS = np.zeros((opt.num_of_users, opt.dim_cls_multi))
+CLS = np.zeros((opt.num_of_users, opt.dim_cls_single))
 
 Update_Flag = np.ones(opt.num_of_users)
 Local_Modality = np.zeros(opt.num_of_users).astype(int)
@@ -94,7 +94,7 @@ def temp_to_user(temp_id, local_modality):
 def mmFedavg_encoder(opt, encoder, local_modality):
 
 
-	count_modality = np.zeros(opt.num_of_modality)
+	count_modality = np.zeros(opt.num_of_modality) 
 
 	mean_encoders = np.zeros((opt.num_of_modality, opt.dim_enc_single))
 	# mean_encoder_all = np.zeros(opt.dim_enc_multi)
@@ -131,7 +131,6 @@ def mmFedavg_encoder(opt, encoder, local_modality):
 
 
 def mmFedavg_classifier(opt, classifier, local_modality):
-
 	count_modality = np.zeros(opt.num_of_modality)
 
 	mean_classifiers = np.zeros((opt.num_of_modality, opt.dim_cls_single))
@@ -327,14 +326,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 						print("wait W timeout...")
 					if Local_Modality[user_id] == 2:
 						try:
-							model_1 = np.append(mean_encoder_0, mean_classifier_0)
+							model_enc = np.append(mean_encoder_0, mean_encoder_1)
 						except Exception as e:
 							print("append model_1 error")
-						try:
-							model_2 = np.append(mean_encoder_1, mean_classifier_1)
-						except Exception as e:
-							print("append model_2 error")
-						mess_size = self.send2node(np.append(model_1, model_2))#self.send2node(New_ALL[user_id])
+						mess_size = self.send2node(np.append(model_enc, mean_classifier_0))#self.send2node(New_ALL[user_id])
 					elif Local_Modality[user_id] == 0:
 						mess_size = self.send2node(np.append(mean_encoder_0, mean_classifier_0))#self.send2node(New_ALL[user_id][0:opt.dim_single])
 					elif Local_Modality[user_id] == 1:
